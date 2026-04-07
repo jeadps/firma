@@ -671,6 +671,7 @@
         document.getElementById('user-email').textContent = user.mail || user.userPrincipalName || '';
         document.getElementById('signature-preview').innerHTML = generateSignatureHTML(user);
         showState('signature');
+        autoConfigureWeb();
     }
 
     async function autoConfigureWeb() {
