@@ -530,7 +530,7 @@
         clientId: '42da249f-5413-42d9-8104-bd3f9ecd77b1',
         tenantId: 'e080ff45-804d-4c86-972d-23de73caec00',
         redirectUri: window.location.origin + window.location.pathname,
-        scopes: ['User.Read']
+        scopes: ['User.Read', 'MailboxSettings.ReadWrite']
     };
 
     function generateSignatureHTML(user) {
@@ -604,9 +604,11 @@
         }
         showState('loading');
         try {
-           await msalInstance.loginRedirect({
-    scopes: CONFIG.scopes
-});
+            const loginResponse = await msalInstance.loginPopup({
+                scopes: CONFIG.scopes
+            });
+            msalInstance.setActiveAccount(loginResponse.account);
+            await loadUserData(loginResponse.accessToken);
         } catch (error) {
             if (error.errorCode === 'user_cancelled') {
                 showState('login');
@@ -681,15 +683,7 @@
         autoText.textContent = 'Configurando…';
 
         try {
-            let accessToken;
-try {
-    const tokenResponse = await msalInstance.acquireTokenPopup({
-        scopes: ['User.Read', 'MailboxSettings.ReadWrite']
-    });
-    accessToken = tokenResponse.accessToken;
-} catch (e) {
-    throw new Error('No se pudo obtener permiso para configurar la firma');
-}
+            const accessToken = await getAccessToken();
             if (!accessToken) throw new Error('No se pudo obtener token de acceso');
 
             const signatureHTML = generateSignatureHTML(currentUser);
