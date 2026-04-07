@@ -604,11 +604,9 @@
         }
         showState('loading');
         try {
-            const loginResponse = await msalInstance.loginPopup({
-                scopes: CONFIG.scopes
-            });
-            msalInstance.setActiveAccount(loginResponse.account);
-            await loadUserData(loginResponse.accessToken);
+           await msalInstance.loginRedirect({
+    scopes: CONFIG.scopes
+});
         } catch (error) {
             if (error.errorCode === 'user_cancelled') {
                 showState('login');
