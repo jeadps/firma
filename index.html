@@ -479,8 +479,8 @@
             redirectUri: CONFIG.redirectUri
         },
         cache: {
-            cacheLocation: 'sessionStorage',
-            storeAuthStateInCookie: false
+            cacheLocation: 'localStorage',
+            storeAuthStateInCookie: true
         }
     };
 
@@ -500,16 +500,20 @@
             return;
         }
 
+        // Handle redirect response (user coming back from Microsoft login)
         try {
             const response = await msalInstance.handleRedirectPromise();
-            if (response) {
+            if (response && response.accessToken) {
                 await loadUserData(response.accessToken);
                 return;
             }
         } catch (error) {
             console.error('Redirect error:', error);
+            showError('Error al procesar la autenticación. Intenta de nuevo.');
+            return;
         }
 
+        // Check if user is already signed in
         const accounts = msalInstance.getAllAccounts();
         if (accounts.length > 0) {
             msalInstance.setActiveAccount(accounts[0]);
@@ -534,17 +538,11 @@
         }
         showState('loading');
         try {
-            const loginResponse = await msalInstance.loginPopup({
+            await msalInstance.loginRedirect({
                 scopes: CONFIG.scopes
             });
-            msalInstance.setActiveAccount(loginResponse.account);
-            await loadUserData(loginResponse.accessToken);
         } catch (error) {
-            if (error.errorCode === 'user_cancelled') {
-                showState('login');
-            } else {
-                showError('No se pudo iniciar sesión. Verifica tu cuenta de Microsoft 365.');
-            }
+            showError('No se pudo iniciar sesión. Verifica tu cuenta de Microsoft 365.');
         }
     }
 
