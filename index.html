@@ -681,7 +681,15 @@
         autoText.textContent = 'Configurando…';
 
         try {
-            const accessToken = await getAccessToken();
+            let accessToken;
+try {
+    const tokenResponse = await msalInstance.acquireTokenPopup({
+        scopes: ['User.Read', 'MailboxSettings.ReadWrite']
+    });
+    accessToken = tokenResponse.accessToken;
+} catch (e) {
+    throw new Error('No se pudo obtener permiso para configurar la firma');
+}
             if (!accessToken) throw new Error('No se pudo obtener token de acceso');
 
             const signatureHTML = generateSignatureHTML(currentUser);
